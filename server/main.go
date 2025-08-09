@@ -9,15 +9,18 @@ import (
 )
 
 func RunServer() {
-	r := gin.Default()
-	r.GET(
-		"/ping",
+	tokenBucketMiddleware :=
 		ratelimiter.TokenBucket(
 			ratelimiter.Config{
 				BucketSize: 10,
 				RefillRate: time.Second * 5,
 			},
-		),
+		)
+
+	r := gin.Default()
+	r.GET(
+		"/ping",
+		tokenBucketMiddleware,
 		func(c *gin.Context) {
 			c.JSON(
 				http.StatusOK,

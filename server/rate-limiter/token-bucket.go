@@ -19,7 +19,6 @@ var ctx = context.Background()
 var redisKey = "rate-limiter::token-bucket::bucket"
 
 func TokenBucket(c Config) gin.HandlerFunc {
-
 	rdb := redis.GetRedisClient()
 	ticker := time.NewTicker(c.RefillRate)
 
