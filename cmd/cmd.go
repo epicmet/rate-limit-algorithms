@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -21,6 +22,16 @@ func main() {
 
 	urls := flag.Args()
 
+	sigintChan := make(chan os.Signal, 1)
+	signal.Notify(sigintChan, syscall.SIGINT, syscall.SIGTERM)
+	ctx, cancel := context.WithCancel(context.Background())
+
+	go func() {
+		<-sigintChan
+		fmt.Println("Received interupt signal...")
+		cancel()
+	}()
+
 	var wg sync.WaitGroup
 
 	for _, u := range urls {
@@ -28,32 +39,33 @@ func main() {
 
 		go func() {
 			defer wg.Done()
-			ticker := time.NewTicker(time.Duration(*cooldown) * time.Second)
-			defer ticker.Stop()
-
-			sigintChan := make(chan os.Signal, 1)
-			signal.Notify(sigintChan, syscall.SIGINT, syscall.SIGTERM)
-
-			for {
-				select {
-				case _ = <-sigintChan:
-					{
-						fmt.Println("Received interupt signal...")
-						return
-					}
-				case _ = <-ticker.C:
-					{
-						resp, err := http.Get(u)
-						if err != nil {
-							log.Fatalf("Couldn't GET %v\n", u)
-						}
-
-						log.Printf("Called %v got status -> %v\n", u, resp.StatusCode)
-					}
-				}
-			}
+			pollURL(ctx, u, *cooldown)
 		}()
 	}
 
 	wg.Wait()
+}
+
+func pollURL(ctx context.Context, url string, cooldown int) {
+	ticker := time.NewTicker(time.Duration(cooldown) * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			{
+				fmt.Printf("Stopping polling for %s\n", url)
+				return
+			}
+		case _ = <-ticker.C:
+			{
+				resp, err := http.Get(url)
+				if err != nil {
+					log.Fatalf("Couldn't GET %v\n", url)
+				}
+
+				log.Printf("Called %v got status -> %v\n", url, resp.StatusCode)
+			}
+		}
+	}
 }
