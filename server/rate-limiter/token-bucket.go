@@ -13,12 +13,14 @@ import (
 type Config struct {
 	BucketSize int
 	RefillRate time.Duration
+	KeyPrefix  string
 }
 
 var ctx = context.Background()
-var redisKey = "rate-limiter::token-bucket::bucket"
 
 func TokenBucket(c Config) gin.HandlerFunc {
+	var redisKey = fmt.Sprintf("rate-limiter::token-bucket::bucket::%s", c.KeyPrefix)
+
 	rdb := redis.GetRedisClient()
 	ticker := time.NewTicker(c.RefillRate)
 
