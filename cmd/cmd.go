@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -18,8 +17,6 @@ func main() {
 	cooldown := flag.Int("cooldown", 1, "how many seconds it takes between each request")
 	flag.Parse()
 
-	fmt.Printf("Interval: %v\n", *cooldown)
-
 	urls := flag.Args()
 
 	sigintChan := make(chan os.Signal, 1)
@@ -28,7 +25,7 @@ func main() {
 
 	go func() {
 		<-sigintChan
-		fmt.Println("Received interupt signal...")
+		log.Println("Received interupt signal...")
 		cancel()
 	}()
 
@@ -54,7 +51,7 @@ func pollURL(ctx context.Context, url string, cooldown int) {
 		select {
 		case <-ctx.Done():
 			{
-				fmt.Printf("Stopping polling for %s\n", url)
+				log.Printf("Stopping polling for %s\n", url)
 				return
 			}
 		case _ = <-ticker.C:
