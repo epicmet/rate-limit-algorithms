@@ -4,21 +4,24 @@ import (
 	"net/http"
 	"time"
 
-	ratelimiter "github.com/epicmet/rate-limit-algorithms/server/rate-limiter"
+	"github.com/epicmet/rate-limit-algorithms/server/rate-limiter/algorithms/token-bucket"
+	statemanager "github.com/epicmet/rate-limit-algorithms/server/rate-limiter/state-manager"
 	"github.com/gin-gonic/gin"
 )
 
 func RunServer() {
 	r := gin.Default()
+
+	stateManager := statemanager.New(
+		"redis",
+		statemanager.Config{
+			Addr: "localhost:6379",
+		},
+	)
+
 	r.GET(
 		"/ping",
-		ratelimiter.TokenBucket(
-			ratelimiter.Config{
-				BucketSize: 5,
-				RefillRate: time.Second * 5,
-				KeyPrefix: "ping",
-			},
-		),
+		tokenbucket.New("ping", 5, time.Second*5, stateManager).GinMiddleware(),
 		func(c *gin.Context) {
 			c.JSON(
 				http.StatusOK,
@@ -30,13 +33,7 @@ func RunServer() {
 
 	r.GET(
 		"/idk",
-		ratelimiter.TokenBucket(
-			ratelimiter.Config{
-				BucketSize: 5,
-				RefillRate: time.Second * 10,
-				KeyPrefix: "idk",
-			},
-		),
+		tokenbucket.New("idk", 5, time.Second*10, stateManager).GinMiddleware(),
 		func(c *gin.Context) {
 			c.JSON(
 				http.StatusOK,
