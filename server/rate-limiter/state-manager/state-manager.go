@@ -13,6 +13,7 @@ type StateManager interface {
 	Set(key string, value interface{}, expireTime time.Duration) (string, error)
 	GetIntValue(key string) (int64, error)
 	Decr(key string) (int64, error)
+	Incr(key string) (int64, error)
 }
 
 func New(t string, c Config) StateManager {

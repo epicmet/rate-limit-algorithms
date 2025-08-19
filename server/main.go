@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	leakingbucket "github.com/epicmet/rate-limit-algorithms/server/rate-limiter/algorithms/leaking-bucket"
 	"github.com/epicmet/rate-limit-algorithms/server/rate-limiter/algorithms/token-bucket"
 	statemanager "github.com/epicmet/rate-limit-algorithms/server/rate-limiter/state-manager"
 	"github.com/gin-gonic/gin"
@@ -33,7 +34,7 @@ func RunServer() {
 
 	r.GET(
 		"/idk",
-		tokenbucket.New("idk", 5, time.Second*10, stateManager).GinMiddleware(),
+		leakingbucket.New("idk", 5, time.Second*2, stateManager).GinMiddleware(),
 		func(c *gin.Context) {
 			c.JSON(
 				http.StatusOK,

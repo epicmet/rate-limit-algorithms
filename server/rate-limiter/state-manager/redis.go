@@ -54,3 +54,7 @@ func (r redisStruct) GetIntValue(key string) (int64, error) {
 func (r redisStruct) Decr(key string) (int64, error) {
 	return r.client.Decr(context.Background(), key).Result()
 }
+
+func (r redisStruct) Incr(key string) (int64, error) {
+	return r.client.Incr(context.Background(), key).Result()
+}
