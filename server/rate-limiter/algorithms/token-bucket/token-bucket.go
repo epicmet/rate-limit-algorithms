@@ -17,7 +17,7 @@ type TokenBucket struct {
 }
 
 func New(keyPrefix string, capacity int, refillRate time.Duration, sm statemanager.StateManager) *TokenBucket {
-	key := fmt.Sprintf("rate-limiter::token-bucket::bucket::%s", keyPrefix)
+	key := fmt.Sprintf("%s::rate-limiter::token-bucket::bucket", keyPrefix)
 
 	ticker := time.NewTicker(refillRate)
 
